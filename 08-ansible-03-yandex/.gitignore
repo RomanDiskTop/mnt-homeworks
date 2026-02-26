@@ -1,0 +1,21 @@
+# Terraform
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/terraform.tfstate*
+terraform/terraform.tfvars
+terraform/crash.log
+terraform/override.tf*
+terraform/*override.tf*
+terraform/terraform.tfvars
+
+# Generated inventory
+ansible/inventory/prod.yml
+
+# Ansible
+*.retry
+ansible/collections/
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/

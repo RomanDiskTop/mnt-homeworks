@@ -1,0 +1,11 @@
+# Ansible
+*.retry
+
+# Terraform / secrets
+terraform.tfvars
+*.tfstate
+*.tfstate.*
+.terraform/
+authorized_key.json
+*.pem
+*.key

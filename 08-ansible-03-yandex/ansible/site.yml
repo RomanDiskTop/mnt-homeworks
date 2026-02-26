@@ -1,0 +1,193 @@
+---
+- name: Установка ClickHouse и Vector
+  hosts: clickhouse
+  become: true
+  tags: [clickhouse, vector]
+
+  tasks:
+    - name: Установить зависимости для репозиториев
+      ansible.builtin.apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - dirmngr
+          - gnupg
+          - curl
+          - wget
+        state: present
+        update_cache: true
+
+    # ClickHouse
+    - name: Скачать ключ ClickHouse
+      ansible.builtin.get_url:
+        url: https://packages.clickhouse.com/rpm/lts/repodata/repomd.xml.key
+        dest: /tmp/clickhouse-repomd.xml.key
+        mode: "0644"
+      register: download_clickhouse_key
+      until: download_clickhouse_key is success
+      retries: 3
+      delay: 5
+
+    - name: Установить ключ ClickHouse
+      ansible.builtin.command:
+        cmd: gpg --dearmor -o /usr/share/keyrings/clickhouse-keyring.gpg /tmp/clickhouse-repomd.xml.key
+      args:
+        creates: /usr/share/keyrings/clickhouse-keyring.gpg
+
+    - name: Добавить репозиторий ClickHouse
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/usr/share/keyrings/clickhouse-keyring.gpg] https://packages.clickhouse.com/deb stable main"
+        state: present
+        filename: clickhouse
+        update_cache: true
+
+    - name: Установить ClickHouse
+      ansible.builtin.apt:
+        name:
+          - clickhouse-server
+          - clickhouse-client
+        state: present
+        update_cache: true
+
+    - name: Запустить ClickHouse
+      ansible.builtin.service:
+        name: clickhouse-server
+        state: started
+        enabled: true
+
+    # Vector - новый репозиторий
+    - name: Скачать ключи Datadog (новый репозиторий Vector)
+      ansible.builtin.get_url:
+        url: "{{ item }}"
+        dest: "/tmp/{{ item | basename }}"
+        mode: "0644"
+      loop:
+        - https://keys.datadoghq.com/DATADOG_APT_KEY_CURRENT.public
+        - https://keys.datadoghq.com/DATADOG_APT_KEY_F14F620E.public
+        - https://keys.datadoghq.com/DATADOG_APT_KEY_C0962C7D.public
+      register: download_datadog_keys
+      until: download_datadog_keys is success
+      retries: 3
+      delay: 5
+
+    - name: Создать связку ключей Datadog
+      ansible.builtin.command:
+        cmd: gpg --no-default-keyring --keyring /usr/share/keyrings/datadog-archive-keyring.gpg --import /tmp/DATADOG_APT_KEY_CURRENT.public
+      args:
+        creates: /usr/share/keyrings/datadog-archive-keyring.gpg
+
+    - name: Добавить остальные ключи в связку
+      ansible.builtin.command:
+        cmd: gpg --no-default-keyring --keyring /usr/share/keyrings/datadog-archive-keyring.gpg --import /tmp/DATADOG_APT_KEY_F14F620E.public
+      when: not ansible_local.stat.exists | default(false)
+
+    - name: Добавить остальные ключи в связку (третий)
+      ansible.builtin.command:
+        cmd: gpg --no-default-keyring --keyring /usr/share/keyrings/datadog-archive-keyring.gpg --import /tmp/DATADOG_APT_KEY_C0962C7D.public
+      when: not ansible_local.stat.exists | default(false)
+
+    - name: Установить права на ключ
+      ansible.builtin.file:
+        path: /usr/share/keyrings/datadog-archive-keyring.gpg
+        mode: "0644"
+
+    - name: Добавить репозиторий Vector (новый)
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/usr/share/keyrings/datadog-archive-keyring.gpg] https://apt.vector.dev/ stable vector-0"
+        state: present
+        filename: vector
+        update_cache: true
+
+    - name: Установить Vector
+      ansible.builtin.apt:
+        name: vector
+        state: present
+        update_cache: true
+
+    - name: Запустить Vector
+      ansible.builtin.service:
+        name: vector
+        state: started
+        enabled: true
+
+- name: Установка и настройка LightHouse
+  hosts: lighthouse
+  become: true
+  tags: [lighthouse]
+
+  vars:
+    lighthouse_root: /var/www/lighthouse
+
+  tasks:
+    - name: Установить nginx и unzip
+      ansible.builtin.apt:
+        name:
+          - nginx
+          - unzip
+        state: present
+        update_cache: true
+
+    - name: Создать директорию для статики LightHouse
+      ansible.builtin.file:
+        path: "{{ lighthouse_root }}"
+        state: directory
+        mode: "0755"
+
+    - name: Скачать архив LightHouse
+      ansible.builtin.get_url:
+        url: https://github.com/VKCOM/lighthouse/archive/refs/heads/master.zip
+        dest: /tmp/lighthouse.zip
+        mode: "0644"
+      register: download_lighthouse
+      until: download_lighthouse is success
+      retries: 3
+      delay: 5
+
+    - name: Распаковать статику LightHouse
+      ansible.builtin.unarchive:
+        src: /tmp/lighthouse.zip
+        dest: "{{ lighthouse_root }}"
+        remote_src: true
+        creates: "{{ lighthouse_root }}/lighthouse-master"
+
+    - name: Создать конфигурацию nginx для LightHouse
+      ansible.builtin.copy:
+        content: |
+          server {
+              listen 80;
+              server_name _;
+              root {{ lighthouse_root }}/lighthouse-master;
+              index index.html;
+              
+              location / {
+                  try_files $uri $uri/ =404;
+              }
+          }
+        dest: /etc/nginx/sites-available/lighthouse.conf
+        mode: "0644"
+      notify: Перезапустить nginx
+
+    - name: Включить сайт LightHouse
+      ansible.builtin.file:
+        src: /etc/nginx/sites-available/lighthouse.conf
+        dest: /etc/nginx/sites-enabled/lighthouse.conf
+        state: link
+      notify: Перезапустить nginx
+
+    - name: Отключить дефолтный сайт nginx
+      ansible.builtin.file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: Перезапустить nginx
+
+    - name: Убедиться что nginx запущен
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: true
+
+  handlers:
+    - name: Перезапустить nginx
+      ansible.builtin.service:
+        name: nginx
+        state: restarted

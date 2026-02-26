@@ -1,0 +1,18 @@
+---
+all:
+  vars:
+    ansible_user: ${user}
+    ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
+  children:
+    clickhouse:
+      hosts:
+        clickhouse-01:
+          ansible_host: ${ch}
+    vector:
+      hosts:
+        vector-01:
+          ansible_host: ${vec}
+    lighthouse:
+      hosts:
+        lighthouse-01:
+          ansible_host: ${lh}
