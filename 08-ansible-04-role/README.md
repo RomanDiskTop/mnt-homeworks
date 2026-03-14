@@ -37,10 +37,15 @@
 10. Выложите playbook в репозиторий.
 11. В ответе дайте ссылки на оба репозитория с roles и одну ссылку на репозиторий с playbook.
 
----
+## Ответ на задание
 
-### Как оформить решение задания
+vector-role
+https://github.com/RomanDiskTop/vector-role
 
-Выполненное домашнее задание пришлите в виде ссылки на .md-файл в вашем репозитории.
+lighthouse-role
+https://github.com/RomanDiskTop/lighthouse-role
 
----
+playbook
+https://github.com/RomanDiskTop/mnt-homeworks/tree/main/08-ansible-04-role
+
+![Cкриншот «Задание»](img/image1.png)
