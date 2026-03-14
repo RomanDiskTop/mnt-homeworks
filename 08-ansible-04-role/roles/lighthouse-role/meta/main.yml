@@ -1,0 +1,18 @@
+---
+galaxy_info:
+  role_name: lighthouse_role
+  author: RomanDiskTop
+  description: Install and configure LightHouse with nginx
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+  galaxy_tags:
+    - lighthouse
+    - clickhouse
+    - nginx
+
+dependencies: []

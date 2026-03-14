@@ -1,0 +1,13 @@
+---
+vector_apt_dependencies:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - gnupg
+
+vector_datadog_keys:
+  - https://keys.datadoghq.com/DATADOG_APT_KEY_CURRENT.public
+  - https://keys.datadoghq.com/DATADOG_APT_KEY_F14F620E.public
+  - https://keys.datadoghq.com/DATADOG_APT_KEY_C0962C7D.public
+
+vector_apt_repo: "deb [signed-by=/usr/share/keyrings/datadog-archive-keyring.gpg] https://apt.vector.dev/ stable vector-0"

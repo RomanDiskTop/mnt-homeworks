@@ -1,0 +1,48 @@
+---
+- name: Install LightHouse dependencies
+  ansible.builtin.apt:
+    name: "{{ lighthouse_packages }}"
+    state: present
+    update_cache: true
+
+- name: Create LightHouse root directory
+  ansible.builtin.file:
+    path: "{{ lighthouse_root_dir }}"
+    state: directory
+    owner: "{{ lighthouse_nginx_user }}"
+    group: "{{ lighthouse_nginx_user }}"
+    mode: "0755"
+
+- name: Download LightHouse sources
+  ansible.builtin.git:
+    repo: "{{ lighthouse_repo }}"
+    dest: "{{ lighthouse_root_dir }}"
+    version: "{{ lighthouse_version }}"
+    force: true
+  notify: Restart nginx
+
+- name: Deploy nginx config for LightHouse
+  ansible.builtin.template:
+    src: lighthouse.conf.j2
+    dest: /etc/nginx/sites-available/lighthouse.conf
+    mode: "0644"
+  notify: Restart nginx
+
+- name: Enable LightHouse nginx site
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/lighthouse.conf
+    dest: /etc/nginx/sites-enabled/lighthouse.conf
+    state: link
+  notify: Restart nginx
+
+- name: Disable default nginx site
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: Restart nginx
+
+- name: Ensure nginx service is enabled and started
+  ansible.builtin.service:
+    name: nginx
+    enabled: true
+    state: started

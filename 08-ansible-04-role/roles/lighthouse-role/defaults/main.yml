@@ -1,0 +1,9 @@
+---
+lighthouse_root_dir: /var/www/lighthouse
+lighthouse_repo: https://github.com/VKCOM/lighthouse.git
+lighthouse_version: master
+lighthouse_nginx_user: www-data
+lighthouse_listen_port: 80
+lighthouse_server_name: _
+lighthouse_access_log: /var/log/nginx/lighthouse_access.log
+lighthouse_error_log: /var/log/nginx/lighthouse_error.log

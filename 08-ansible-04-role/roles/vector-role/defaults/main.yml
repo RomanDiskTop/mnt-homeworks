@@ -1,0 +1,21 @@
+---
+vector_package_state: present
+vector_config_dir: /etc/vector
+vector_config_file: "{{ vector_config_dir }}/vector.yaml"
+vector_service_enabled: true
+vector_service_state: started
+
+vector_sources:
+  demo_logs:
+    type: file
+    include:
+      - /var/log/*.log
+    read_from: beginning
+
+vector_sinks:
+  console:
+    type: console
+    inputs:
+      - demo_logs
+    encoding:
+      codec: json

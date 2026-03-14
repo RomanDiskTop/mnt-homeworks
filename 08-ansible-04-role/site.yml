@@ -1,0 +1,24 @@
+---
+- name: Install ClickHouse
+  hosts: clickhouse
+  become: true
+  roles:
+    - role: clickhouse
+      tags:
+        - clickhouse
+
+- name: Install Vector
+  hosts: vector
+  become: true
+  roles:
+    - role: vector-role
+      tags:
+        - vector
+
+- name: Install LightHouse
+  hosts: lighthouse
+  become: true
+  roles:
+    - role: lighthouse-role
+      tags:
+        - lighthouse
