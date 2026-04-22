@@ -1,0 +1,26 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: false
+  become: false
+
+  pre_tasks:
+    - name: Ensure tmp dir exists
+      ansible.builtin.raw: sh -c 'mkdir -p /tmp/.ansible/tmp && chmod 1777 /tmp && chmod 777 /tmp/.ansible /tmp/.ansible/tmp'
+      changed_when: false
+
+    - name: Bootstrap python on Ubuntu
+      ansible.builtin.raw: sh -c 'apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y python3 python3-apt'
+      changed_when: false
+      when: inventory_hostname == "ubuntu"
+
+    - name: Bootstrap python on Oracle Linux 8
+      ansible.builtin.raw: sh -c 'dnf install -y python39 || yum install -y python39'
+      changed_when: false
+      when: inventory_hostname == "oraclelinux"
+
+    - name: Gather facts after python bootstrap
+      ansible.builtin.setup:
+
+  roles:
+    - role: vector_role

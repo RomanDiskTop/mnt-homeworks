@@ -1,0 +1,19 @@
+---
+galaxy_info:
+  author: RomanDiskTop
+  namespace: romandisktop
+  role_name: vector_role
+  description: Install and configure Vector
+  company: netology
+  license: MIT
+  min_ansible_version: "2.14"
+
+  platforms:
+    - name: Ubuntu
+      versions:
+        - all
+    - name: EL
+      versions:
+        - "8"
+
+dependencies: []

@@ -1,0 +1,27 @@
+---
+vector_version: "0.54.0"
+vector_config_dir: "/etc/vector"
+vector_config_file: "{{ vector_config_dir }}/vector.yaml"
+vector_data_dir: "/var/lib/vector"
+vector_user: "root"
+vector_group: "root"
+
+vector_start_command: "PATH=/root/.vector/bin:/usr/local/bin:/usr/bin:/bin:$PATH nohup vector --config {{ vector_config_file }} > /var/log/vector.log 2>&1 &"
+
+vector_config:
+  data_dir: "{{ vector_data_dir }}"
+  api:
+    enabled: false
+  sources:
+    demo_logs:
+      type: file
+      include:
+        - /var/log/*.log
+      read_from: beginning
+  sinks:
+    console:
+      type: console
+      inputs:
+        - demo_logs
+      encoding:
+        codec: json

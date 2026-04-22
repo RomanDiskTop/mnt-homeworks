@@ -1,0 +1,46 @@
+---
+dependency:
+  name: galaxy
+
+driver:
+  name: podman
+
+platforms:
+  - name: ubuntu
+    image: docker.io/ubuntu:latest
+    pre_build_image: true
+    command: "tail -f /dev/null"
+    privileged: true
+
+  - name: oraclelinux
+    image: docker.io/library/oraclelinux:8
+    pre_build_image: true
+    command: "tail -f /dev/null"
+    privileged: true
+
+provisioner:
+  name: ansible
+  env:
+    ANSIBLE_REMOTE_TMP: /tmp/.ansible/tmp
+    ANSIBLE_ROLES_PATH: ${MOLECULE_PROJECT_DIRECTORY}/..
+  inventory:
+    host_vars:
+      ubuntu:
+        ansible_python_interpreter: /usr/bin/python3
+      oraclelinux:
+        ansible_python_interpreter: /usr/bin/python3.9
+  config_options:
+    defaults:
+      host_key_checking: false
+      interpreter_python: auto_silent
+      remote_tmp: /tmp/.ansible/tmp
+
+verifier:
+  name: ansible
+
+scenario:
+  test_sequence:
+    - create
+    - converge
+    - verify
+    - destroy

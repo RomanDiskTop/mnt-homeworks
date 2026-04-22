@@ -1,0 +1,24 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+  become: false
+
+  pre_tasks:
+    - name: Ensure tmp dir exists
+      ansible.builtin.raw: sh -c 'mkdir -p /tmp/.ansible/tmp && chmod 1777 /tmp && chmod 777 /tmp/.ansible /tmp/.ansible/tmp'
+      changed_when: false
+
+    - name: Gather facts
+      ansible.builtin.setup:
+
+  tasks:
+    - name: Validate Vector config
+      ansible.builtin.command: vector validate --no-environment --config-yaml /etc/vector/vector.yaml
+      register: vector_validate_cmd
+      changed_when: false
+
+    - name: Assert compatibility scenario passed
+      ansible.builtin.assert:
+        that:
+          - vector_validate_cmd.rc == 0

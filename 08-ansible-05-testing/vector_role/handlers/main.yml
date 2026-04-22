@@ -1,0 +1,10 @@
+---
+- name: Restart vector
+  ansible.builtin.shell: |
+    PATH=/root/.vector/bin:/usr/local/bin:/usr/bin:/bin:$PATH
+    pkill -f 'vector --config {{ vector_config_file }}' || true
+    {{ vector_start_command }}
+  args:
+    executable: /bin/bash
+  changed_when: false
+  failed_when: false

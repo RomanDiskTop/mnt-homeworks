@@ -1,0 +1,42 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+  become: false
+
+  pre_tasks:
+    - name: Ensure tmp dir exists
+      ansible.builtin.raw: sh -c 'mkdir -p /tmp/.ansible/tmp && chmod 1777 /tmp && chmod 777 /tmp/.ansible /tmp/.ansible/tmp'
+      changed_when: false
+
+    - name: Gather facts
+      ansible.builtin.setup:
+
+  tasks:
+    - name: Get vector version
+      ansible.builtin.command: vector --version
+      register: vector_version_cmd
+      changed_when: false
+
+    - name: Validate Vector config
+      ansible.builtin.command: vector validate --no-environment --config-yaml /etc/vector/vector.yaml
+      register: vector_validate_cmd
+      changed_when: false
+
+    - name: Check Vector process
+      ansible.builtin.shell: pgrep -f 'vector --config /etc/vector/vector.yaml'
+      register: vector_process_cmd
+      changed_when: false
+
+    - name: Check config file exists
+      ansible.builtin.stat:
+        path: /etc/vector/vector.yaml
+      register: vector_config_stat
+
+    - name: Assert Vector is installed and works
+      ansible.builtin.assert:
+        that:
+          - "'vector' in vector_version_cmd.stdout | lower"
+          - vector_validate_cmd.rc == 0
+          - vector_process_cmd.rc == 0
+          - vector_config_stat.stat.exists
