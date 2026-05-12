@@ -1,0 +1,10 @@
+---
+- name: тест модуля
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: изменяем модуль
+      my_own_module:
+        path: /tmp/my_own_collection_file.txt
+        content: "Hello from my own Ansible collection beach"

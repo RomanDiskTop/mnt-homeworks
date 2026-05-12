@@ -1,0 +1,10 @@
+---
+- name: Use custom role from collection
+  hosts: localhost
+  gather_facts: false
+
+  roles:
+    - role: create_file
+      vars:
+        file_path: /tmp/file_from_collection_role.txt
+        file_content: "Hello from role inside collection"

@@ -1,0 +1,14 @@
+namespace: my_own_namespace
+name: yandex_cloud_elk
+version: 1.0.0
+readme: README.md
+authors:
+  - Roman (@dog540705)
+description: Custom Ansible collection with own module and role
+license:
+  - GPL-3.0-or-later
+tags:
+  - ansible
+  - module
+  - collection
+repository: https://github.com/dog540705/my_own_collection

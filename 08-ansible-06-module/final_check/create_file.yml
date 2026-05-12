@@ -1,0 +1,10 @@
+---
+- name: Использование роли из установленной collection
+  hosts: localhost
+  gather_facts: false
+
+  roles:
+    - role: my_own_namespace.yandex_cloud_elk.create_file
+      vars:
+        file_path: /tmp/test.txt
+        file_content: "Здаров из Ansible collection"
